@@ -8,4 +8,6 @@ All notable changes to this project are documented here. The format follows
 
 ## [0.1.0]
 
-- First release.
+- First release: `has_invisible`, `strip_invisible` and `find_invisible` over a curated set
+  of zero-width and invisible code points, with an optional broad Unicode format-category
+  fallback and ordinary whitespace left untouched.

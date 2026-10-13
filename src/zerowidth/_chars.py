@@ -1,12 +1,28 @@
-"""The curated set of zero-width and invisible characters."""
+"""The curated set of invisible characters and the kind of each hidden character."""
 
 from __future__ import annotations
 
+from typing import Literal, get_args
+
+from ._props import BIDI_CONTROL, CF, DICP, VARIATION_SELECTOR, VISIBLE_FORMAT, prop
+
+Kind = Literal[
+    "bidi",
+    "joiner",
+    "zero-width",
+    "tag",
+    "variation-selector",
+    "filler",
+    "format",
+    "ignorable",
+]
+KINDS: tuple[Kind, ...] = get_args(Kind)
+
 # Code points that render with no glyph or zero advance width and are routinely used to
 # smuggle data into text or to defeat copy-paste and search. Each is listed by name so the
-# set stays auditable. Most carry Unicode category Cf (format), which the broad option
-# detects on its own; the fillers, the combining grapheme joiner and the braille blank are
-# not Cf and are why this set is curated rather than category-derived.
+# set stays auditable and does not move with Unicode versions. Broad mode adds the
+# Unicode data on top of it (see ``is_hidden``); the braille blank is the one entry the
+# data does not cover, since it is a visible-width symbol that merely draws no dots.
 _NAMED: dict[int, str] = {
     0x00AD: "soft hyphen",
     0x034F: "combining grapheme joiner",
@@ -51,3 +67,36 @@ _NAMED: dict[int, str] = {
 _TAGS = range(0xE0000, 0xE0080)
 
 INVISIBLE: frozenset[int] = frozenset(_NAMED) | frozenset(_TAGS)
+
+_JOINERS = frozenset({0x200C, 0x200D})
+_ZERO_WIDTH = frozenset({0x200B, 0x2060, 0xFEFF})
+_FILLERS = frozenset({0x115F, 0x1160, 0x2800, 0x3164, 0xFFA0})
+
+
+def is_hidden(cp: int, broad: bool) -> bool:
+    """Tell whether ``cp`` is a hidden character in narrow or broad mode."""
+    if cp in INVISIBLE:
+        return True
+    if not broad:
+        return False
+    code = prop(cp)
+    # Prepended concatenation marks are Cf but draw a visible sign over the digits.
+    return bool(code & DICP) or (bool(code & CF) and not code & VISIBLE_FORMAT)
+
+
+def kind_of(cp: int) -> Kind:
+    """Classify a hidden code point; the first matching rule wins."""
+    code = prop(cp)
+    if code & BIDI_CONTROL:
+        return "bidi"
+    if cp in _JOINERS:
+        return "joiner"
+    if cp in _ZERO_WIDTH:
+        return "zero-width"
+    if cp == 0xE0001 or 0xE0020 <= cp <= 0xE007F:
+        return "tag"
+    if code & VARIATION_SELECTOR:
+        return "variation-selector"
+    if cp in _FILLERS:
+        return "filler"
+    return "format" if code & CF else "ignorable"

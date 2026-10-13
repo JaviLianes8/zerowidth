@@ -100,18 +100,20 @@ tests that read them skip while they are absent. The Unicode licence ships as
 3. Reveal mode: `reveal()` replaces each hidden character with a visible marker
    (`<U+200B>`, a `\u` escape, the name, or a callable).
 4. `keep_emoji=True`: keep ZWJ, VS15/VS16 and tag characters only where they belong to an
-   emoji sequence by the UTS #51 grammar. Tightened on purpose: the tag sequence must be a
-   flag tag sequence of Annex C shape, a presentation selector must follow a character
-   listed in emoji-variation-sequences.txt, and an ASCII digit, `#` or `*` only counts as
-   an element when it carries FE0F. Variation selectors from the supplementary block
+   emoji sequence by the UTS #51 grammar. Tightened on purpose: the tag sequence must be
+   one of the RGI flag tag sequences (any id of Annex C shape would leave room for hidden
+   bytes), a presentation selector must follow a character listed in
+   emoji-variation-sequences.txt, an element must be Emoji (not merely
+   Extended_Pictographic, which includes reserved code points), and an ASCII digit, `#`
+   or `*` only counts inside a full keycap. Variation selectors from the supplementary block
    (the emoji smuggling channel) are never kept. Contract: every RGI sequence and every
    line of emoji-test.txt survives, and without the flag the same sequences lose exactly
    their hidden characters.
 5. `keep_joiners=True`: keep ZWNJ and ZWJ in the A1, A2 and B contexts of UTS #39 with
    the single-script and NFC conditions. Contract: the three figures of the standard.
 6. `unpaired_bidi()`: openers (LRE, RLE, LRO, RLO, LRI, RLI, FSI) still open at a
-   paragraph separator or at the end of text, and closers (PDF, PDI) with nothing to
-   close, matched as UAX #9 X6a and X7 do. This is the check compilers added for Trojan
+   paragraph separator or at the end of text, embeddings cut short by a PDI, and closers
+   (PDF, PDI) with nothing to close, matched as UAX #9 X6a and X7 do. This is the check compilers added for Trojan
    Source.
 7. Command line tool `zerowidth` (and `python -m zerowidth`): `check` reports
    `path:line:col U+XXXX NAME kind` with exit 1 on findings, `strip` and `reveal` write to

@@ -8,7 +8,7 @@ version = "0.2.0"
 description = "Detect, reveal and strip zero-width, bidi and other invisible characters, keeping emoji and words intact"
 readme = "README.md"
 requires-python = ">=3.10"
-license = "MIT"
+license = "MIT AND Unicode-3.0"
 license-files = ["LICENSE", "LICENSE-UNICODE"]
 authors = [{ name = "Javier Lianes", email = "javier@lianes8studio.com" }]
 keywords = [
@@ -88,5 +88,7 @@ strict = true
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 pythonpath = ["src"]
-addopts = "-q"
-markers = ["e2e: builds the wheel and installs it into a fresh virtual environment"]
+addopts = "-q -m 'not e2e'"
+markers = [
+    "e2e: builds the wheel and installs it into a fresh venv (needs network); run with -m e2e",
+]

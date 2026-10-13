@@ -39,7 +39,7 @@ def test_wheel_installs_and_the_script_works(tmp_path: Path) -> None:
     assert "zerowidth/py.typed" in names and "zerowidth/_ucd_part1.py" in names
     assert any(n.endswith("licenses/LICENSE-UNICODE") for n in names)
     assert not [n for n in names if n.startswith(("data/", "tests/", "scripts/"))]
-    assert not [n for n in names if n.endswith(".txt")]
+    assert not [n for n in names if n.endswith(".txt") and ".dist-info/" not in n]
 
     env_dir = tmp_path / "venv"
     venv.EnvBuilder(with_pip=True, clear=True).create(env_dir)

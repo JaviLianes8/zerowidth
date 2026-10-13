@@ -99,3 +99,24 @@ def test_version_and_help(capsys: pytest.CaptureFixture[str]) -> None:
     with pytest.raises(SystemExit):
         run(["--help"])
     assert "exit status" in capsys.readouterr().out
+
+
+def test_check_counts_lines_ended_by_cr_lf_or_lone_cr() -> None:
+    zwsp = chr(0x200B).encode()
+    text = b"a\rb" + zwsp + b"\r\nc" + zwsp + b"\n" + zwsp
+    _, out = run(["check"], text)
+    rows = [row.split(": ")[0] for row in out.decode().splitlines()]
+    assert rows == ["<stdin>:2:2", "<stdin>:3:2", "<stdin>:4:1"]
+
+
+def test_bidi_refuses_the_scan_options(capsys: pytest.CaptureFixture[str]) -> None:
+    for option in (["--kind", "joiner"], ["--narrow"], ["--keep-emoji"], ["--keep-joiners"]):
+        with pytest.raises(SystemExit) as raised:
+            run(["check", "--bidi", *option], chr(0x202E).encode())
+        assert raised.value.code == 2
+    assert "--bidi" in capsys.readouterr().err
+
+
+def test_strip_and_reveal_exit_zero_even_when_they_change_the_text() -> None:
+    assert run(["strip"], "a\u200b".encode()) == (0, b"a")
+    assert run(["reveal"], "a\u200b".encode())[0] == 0

@@ -63,7 +63,8 @@ _NAMED: dict[int, str] = {
     0xFFA0: "halfwidth hangul filler",
 }
 
-# Deprecated tag characters: a well-known steganography channel. All carry category Cf.
+# The tag block: a well-known steganography channel. U+E0001 and U+E0020..U+E007F are Cf;
+# the rest of the block is reserved.
 _TAGS = range(0xE0000, 0xE0080)
 
 INVISIBLE: frozenset[int] = frozenset(_NAMED) | frozenset(_TAGS)

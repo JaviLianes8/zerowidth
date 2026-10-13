@@ -2,9 +2,7 @@
 
 from __future__ import annotations
 
-import re
-
-from ._props import EMOJI, EMOJI_MODIFIER, EMOJI_VS_BASE, EXT_PICT, prop
+from ._props import EMOJI, EMOJI_MODIFIER, EMOJI_VS_BASE, prop
 
 ZWJ = 0x200D
 VS15 = 0xFE0E
@@ -12,20 +10,21 @@ VS16 = 0xFE0F
 KEYCAP = 0x20E3
 BLACK_FLAG = 0x1F3F4
 CANCEL_TAG = 0xE007F
-# UTS #51 Annex C: a flag tag spec spells a CLDR subdivision id (a two-letter or
-# three-digit region plus one to four letters or digits) or a three-digit region.
-_SUBDIVISION = re.compile(r"(?:[a-z]{2}|[0-9]{3})[a-z0-9]{1,4}|[0-9]{3}")
+# The RGI_Emoji_Tag_Sequence lines of emoji-sequences.txt (Emoji 18.0). UTS #51 Annex C
+# allows any CLDR subdivision id, but accepting every id of the right shape would leave
+# room for a few hidden bytes per flag, so only the recommended flags count.
+RGI_FLAG_TAGS = frozenset({"gbeng", "gbsct", "gbwls"})
 
 
 def _tag_end(cps: list[int], start: int) -> int:
     """Return the index after a flag tag spec and its cancel tag at ``start``, or -1."""
     end = start
-    while end < len(cps) and (0xE0030 <= cps[end] <= 0xE0039 or 0xE0061 <= cps[end] <= 0xE007A):
+    while end < len(cps) and 0xE0020 <= cps[end] <= 0xE007E:
         end += 1
-    if end - start > 7 or end >= len(cps) or cps[end] != CANCEL_TAG:
+    if end >= len(cps) or cps[end] != CANCEL_TAG:
         return -1
     spec = "".join(chr(cp - 0xE0000) for cp in cps[start:end])
-    return end + 1 if _SUBDIVISION.fullmatch(spec) else -1
+    return end + 1 if spec in RGI_FLAG_TAGS else -1
 
 
 def _element(cps: list[int], start: int, kept: set[int]) -> tuple[int, bool]:
@@ -36,22 +35,24 @@ def _element(cps: list[int], start: int, kept: set[int]) -> tuple[int, bool]:
     """
     base = cps[start]
     code = prop(base)
-    if not code & (EMOJI | EXT_PICT):
+    after = cps[start + 1] if start + 1 < len(cps) else -1
+    if base < 0x80:
+        # A digit, '#' or '*' is an emoji character by property, but it only renders as
+        # an emoji in a keycap; anywhere else a selector or joiner could hide beside it.
+        keycap = after == VS16 and start + 2 < len(cps) and cps[start + 2] == KEYCAP
+        if not (code & EMOJI and keycap):
+            return start, False
+        kept.add(start + 1)
+        return start + 3, True
+    if not code & EMOJI:
         return start, False
     end = start + 1
-    after = cps[end] if end < len(cps) else -1
     if after in (VS15, VS16) and code & EMOJI_VS_BASE:
         kept.add(end)
         end += 1
         if after == VS15:
             return end, False
-        if base < 0x80:
-            return (end + 1 if end < len(cps) and cps[end] == KEYCAP else end), True
-    elif base < 0x80:
-        # A bare digit, '#' or '*' is an emoji character by property, but treating it as
-        # a ZWJ element would let a joiner hide between ordinary digits.
-        return start, False
-    elif after >= 0 and prop(after) & EMOJI_MODIFIER and not code & EMOJI_MODIFIER:
+    elif after >= 0 and prop(after) & EMOJI_MODIFIER:
         end += 1
     if base == BLACK_FLAG and end == start + 1:
         tags = _tag_end(cps, end)

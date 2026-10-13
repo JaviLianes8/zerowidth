@@ -52,10 +52,13 @@ def test_pdf_does_not_close_an_embedding_across_an_isolate() -> None:
     assert where(f"{RLE}{LRI}a{PDF}") == [(0, 0x202B), (1, 0x2066), (3, 0x202C)]
 
 
-def test_pdi_closes_the_embeddings_opened_inside_its_isolate() -> None:
-    # X6a: the PDI pops everything back to and including the latest isolate.
-    assert where(f"{RLI}a{RLO}b{PDI}") == []
+def test_pdi_cuts_short_the_embeddings_opened_inside_its_isolate() -> None:
+    # X6a: the PDI pops everything back to and including the latest isolate; the
+    # embeddings it pops never had their PDF, so they are reported.
+    assert where(f"{RLI}a{RLO}b{PDI}") == [(2, 0x202E)]
+    assert where(f"{RLI}a{RLO}b{PDF}{PDI}") == []
     assert where(f"{RLO}{RLI}{PDI}") == [(0, 0x202E)]
+    assert where(f"{RLI}{LRE}{RLE}{PDF}{PDI}") == [(1, 0x202A)]
 
 
 def test_pdi_matches_the_latest_isolate_only() -> None:

@@ -18,7 +18,8 @@ def unpaired_bidi(text: str) -> list[Finding]:
     text ends before it is closed; a closer (PDF, PDI) is unpaired when there is nothing
     for it to close. Matching follows UAX #9: a PDF closes the latest embedding or
     override only when no isolate was opened after it (X7), and a PDI closes the latest
-    isolate together with every embedding opened inside it (X6a). Paragraphs end at
+    isolate and cuts short every embedding opened inside it, which is reported because it
+    never got its PDF (X6a). Paragraphs end at
     characters of Bidi_Class B (line feed, carriage return, U+001C..U+001E, U+0085,
     U+2029), where every control is terminated (X8). Overflow past depth 125 is not
     modelled.
@@ -44,6 +45,8 @@ def unpaired_bidi(text: str) -> list[Finding]:
         elif cp == PDI:
             opened = [n for n, (_, opener) in enumerate(stack) if opener in _ISOLATES]
             if opened:
+                # X6a: embeddings still open inside the isolate end here without their PDF.
+                found.extend(Finding(n, c, "bidi") for n, c in stack[opened[-1] + 1 :])
                 del stack[opened[-1] :]
             else:
                 found.append(Finding(index, cp, "bidi"))

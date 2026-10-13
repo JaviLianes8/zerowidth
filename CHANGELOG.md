@@ -6,7 +6,7 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
-## [0.2.0]
+## [0.2.0] - 2026-10-13
 
 ### Added
 
@@ -24,6 +24,9 @@ All notable changes to this project are documented here. The format follows
 
 ### Changed
 
+- Behaviour change: the default broad mode now reports and strips variation selectors, so
+  `has_invisible` on a red heart with its emoji presentation selector turns from False to
+  True. Pass `keep_emoji=True` to keep selectors, joiners and tags that belong to emoji.
 - Broad mode no longer depends on the running Python's Unicode version, and now covers
   every Default_Ignorable_Code_Point, including the variation selectors (so a bare
   emoji presentation selector is reported unless `keep_emoji=True`) and reserved

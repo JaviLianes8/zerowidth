@@ -90,8 +90,9 @@ has_invisible("\u200b", broad=False)  # -> True
 `keep_emoji=True` keeps the joiners, presentation selectors and tag characters that are
 part of an emoji sequence (the UTS #51 grammar), and still reports the ones that are not.
 The rule is strict on purpose: a selector must follow a character that has an emoji
-variation sequence, a tag sequence must be a subdivision flag on U+1F3F4, and selectors
-from the supplementary block, a known way to hide bytes behind an emoji, never count.
+variation sequence (a digit, `#` or `*` only inside a keycap), a tag sequence must be one
+of the recommended (RGI) subdivision flags, England, Scotland or Wales, and selectors from
+the supplementary block, a known way to hide bytes behind an emoji, never count.
 
 ```python
 family = "\U0001f468\u200d\U0001f469\u200d\U0001f467"
@@ -114,8 +115,9 @@ strip_invisible("a\u200cb", keep_joiners=True)  # -> 'ab'
 ### Trojan Source
 
 `unpaired_bidi` returns the bidi controls left open at the end of a paragraph (or of
-the text) and the closers that close nothing, matched the way UAX #9 does. Those are the
-controls that make code or text display in a different order than it reads.
+the text) and the closers that close nothing, matched the way UAX #9 does; an embedding
+that a PDI cuts short is reported too, since it never got its PDF. Those are the controls
+that make code or text display in a different order than it reads.
 
 ```python
 from zerowidth import unpaired_bidi
@@ -127,16 +129,18 @@ source = "/*\u202e } \u2066if (admin)\u2069 \u2066 */\n"
 ## Command line
 
 ```
-zerowidth check notes.txt src/*.py     # path:line:col U+XXXX NAME (kind), exit 1 if any
+zerowidth check notes.txt main.py      # path:line:col U+XXXX NAME (kind), exit 1 if any
 zerowidth check --bidi main.c          # only unpaired bidi controls
 zerowidth strip --keep-emoji < in.txt  # stdin to stdout, newlines untouched
 zerowidth reveal --style name in.txt
 ```
 
 Every command takes `--narrow`, `--keep-emoji`, `--keep-joiners` and `--kind KIND`
-(repeatable). Input is read as UTF-8 bytes and output written as UTF-8 bytes. Exit
-status: 0 nothing found, 1 something found, 2 usage or input error. `python -m
-zerowidth` works too.
+(repeatable); `check --bidi` takes none of them. Input is read as UTF-8 bytes and output
+written as UTF-8 bytes. Lines end at CR LF, CR or LF and columns count code points from 1.
+Files are named one by one (the tool does not expand wildcards). Exit status: `check`
+gives 0 when nothing is found and 1 when something is, `strip` and `reveal` give 0, and
+every command gives 2 on a usage or input error. `python -m zerowidth` works too.
 
 ## Why
 

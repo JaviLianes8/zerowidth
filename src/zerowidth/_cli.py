@@ -3,7 +3,9 @@
 from __future__ import annotations
 
 import argparse
+import re
 import sys
+from bisect import bisect_right
 from collections.abc import Sequence
 from typing import Any, BinaryIO
 
@@ -14,12 +16,14 @@ from ._detect import reveal, scan, strip_invisible
 from ._finding import Finding
 
 EPILOG = """examples:
-  zerowidth check notes.txt src/*.py     report hidden characters, exit 1 if any
+  zerowidth check notes.txt main.py      report hidden characters, exit 1 if any
   zerowidth check --bidi main.c           only bidi controls left unpaired
   zerowidth strip --keep-emoji < in.txt   copy stdin to stdout without them
   zerowidth reveal --style name in.txt    show them as <ZERO WIDTH SPACE>
 
-exit status: 0 nothing found, 1 something found, 2 usage or input error"""
+exit status: check gives 0 when nothing is found and 1 when something is; strip and
+reveal give 0; every command gives 2 on a usage or input error"""
+_LINE_END = re.compile(r"\r\n|\r|\n")
 
 
 class InputError(Exception):
@@ -71,23 +75,24 @@ def _read(name: str, stdin: BinaryIO) -> str:
 
 
 def _report(name: str, text: str, found: list[Finding], out: BinaryIO, unpaired: bool) -> None:
-    line, start, done = 1, 0, 0
+    # Lines end at CR LF, CR or LF; columns count code points from 1.
+    starts = [0, *(match.end() for match in _LINE_END.finditer(text))]
+    what = "unpaired " if unpaired else ""
     for item in found:
-        newlines = text.count("\n", done, item.index)
-        if newlines:
-            line += newlines
-            start = text.rfind("\n", done, item.index) + 1
-        done = item.index
-        what = "unpaired " if unpaired else ""
-        row = (
-            f"{name}:{line}:{item.index - start + 1}: {item.label} {item.name} ({what}{item.kind})"
-        )
+        line = bisect_right(starts, item.index)
+        column = item.index - starts[line - 1] + 1
+        row = f"{name}:{line}:{column}: {item.label} {item.name} ({what}{item.kind})"
         out.write(row.encode("utf-8", "replace") + b"\n")
 
 
 def main(argv: Sequence[str] | None = None, stdin: Any = None, stdout: Any = None) -> int:
     """Run the command line tool and return its exit status."""
-    args = _parser().parse_args(argv)
+    parser = _parser()
+    args = parser.parse_args(argv)
+    if getattr(args, "bidi", False) and (
+        args.narrow or args.keep_emoji or args.keep_joiners or args.kind
+    ):
+        parser.error("--bidi checks bidi pairing only and takes no other option")
     source: BinaryIO = stdin if stdin is not None else sys.stdin.buffer
     out: BinaryIO = stdout if stdout is not None else sys.stdout.buffer
     options = {

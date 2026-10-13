@@ -85,3 +85,29 @@ def test_the_sequence_must_be_nfc() -> None:
 
 def test_latin_joiners_are_still_reported() -> None:
     assert find_invisible("a\u200cb\u200dc", keep_joiners=True) == [(1, 0x200C), (3, 0x200D)]
+
+
+def test_a1_takes_a_left_joining_letter_only_before_the_zwnj() -> None:
+    # PHAGS-PA KA is dual joining, SUPERFIXED LETTER RA left joining (DerivedJoiningType).
+    assert find_invisible(cps(0xA872, 0x200C, 0xA840), keep_joiners=True) == []
+    assert find_invisible(cps(0xA840, 0x200C, 0xA872), keep_joiners=True) == [(1, 0x200C)]
+
+
+def test_a2_skips_combining_marks_after_the_zwnj() -> None:
+    # KA VIRAMA ZWNJ UDATTA KA: UDATTA is Mn with ccc 230 and script Inherited.
+    word = cps(0x0915, 0x094D, 0x200C, 0x0951, 0x0915)
+    assert find_invisible(word, keep_joiners=True) == []
+
+
+def test_the_virama_must_be_the_last_mark_before_the_joiner_run() -> None:
+    # KA VIRAMA KA ZWNJ KA: the virama belongs to an earlier cluster.
+    assert find_invisible(cps(0x0915, 0x094D, 0x0915, 0x200C, 0x0915), keep_joiners=True) == [
+        (3, 0x200C)
+    ]
+    # KA UDATTA ZWNJ KA: a combining mark that is not a virama does not open a conjunct.
+    assert find_invisible(cps(0x0915, 0x0951, 0x200C, 0x0915), keep_joiners=True) == [(2, 0x200C)]
+
+
+def test_the_virama_needs_a_letter_before_it() -> None:
+    assert find_invisible(cps(0x31, 0x094D, 0x200D), keep_joiners=True) == [(2, 0x200D)]
+    assert find_invisible(cps(0x094D, 0x200D), keep_joiners=True) == [(1, 0x200D)]

@@ -7,6 +7,7 @@ import re
 from conftest import UCD, needs_ucd
 
 from zerowidth import scan, strip_invisible
+from zerowidth._emoji import RGI_FLAG_TAGS
 
 HIDDEN_IN_EMOJI = {0x200D, 0xFE0E, 0xFE0F, *range(0xE0020, 0xE0080)}
 
@@ -46,3 +47,13 @@ def test_without_keep_emoji_exactly_the_hidden_characters_go() -> None:
     for sequence in _sequences():
         expected = "".join(ch for ch in sequence if ord(ch) not in HIDDEN_IN_EMOJI)
         assert strip_invisible(sequence) == expected
+
+
+@needs_ucd
+def test_the_recommended_flags_are_the_rgi_tag_sequences() -> None:
+    text = (UCD / "emoji-sequences.txt").read_text(encoding="utf-8")
+    lines = re.findall(
+        r"^1F3F4 ((?:E00[2-7][0-9A-F] )+)E007F *; RGI_Emoji_Tag_Sequence", text, re.M
+    )
+    specs = {"".join(chr(int(cp, 16) - 0xE0000) for cp in line.split()) for line in lines}
+    assert specs == RGI_FLAG_TAGS

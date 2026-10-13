@@ -19,6 +19,9 @@ if (-not $token) {
     throw "No PyPI token. Set `$env:PYPI_TOKEN or save it to C:\secrets\pypi-token.txt (never commit it)."
 }
 
+python -m pytest -m e2e
+if ($LASTEXITCODE -ne 0) { throw "The installed-wheel test failed." }
+
 Remove-Item -Recurse -Force dist -ErrorAction SilentlyContinue
 python -m build
 python -m twine check dist/*

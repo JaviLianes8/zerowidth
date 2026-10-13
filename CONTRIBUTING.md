@@ -14,6 +14,8 @@ pip install -r requirements-dev.txt
 - Add a test for the behaviour you change. Tests inject time, disk and network; they
   never touch the real thing.
 - Run `scripts/check.ps1` (format, lint, types, tests) and make sure it passes.
+- `pytest -m e2e` builds the wheel, installs it into a fresh virtual environment and
+  drives the command; it needs network for the build backend and runs before a release.
 - One logical change per commit, imperative subject line.
 
 ## Unicode data

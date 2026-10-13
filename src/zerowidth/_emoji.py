@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from ._props import EMOJI, EMOJI_MODIFIER, EMOJI_VS_BASE, prop
+from ._props import EMOJI, EMOJI_VS_BASE, prop
 
 ZWJ = 0x200D
 VS15 = 0xFE0E
@@ -31,7 +31,8 @@ def _element(cps: list[int], start: int, kept: set[int]) -> tuple[int, bool]:
     """Parse one emoji ZWJ element at ``start``.
 
     Returns the end index (``start`` when nothing parses) and whether a joiner may follow.
-    The hidden characters of the element are added to ``kept``.
+    The hidden characters of the element are added to ``kept``. An emoji modifier is an
+    emoji character itself, so a modifier sequence parses as two elements.
     """
     base = cps[start]
     code = prop(base)
@@ -52,8 +53,6 @@ def _element(cps: list[int], start: int, kept: set[int]) -> tuple[int, bool]:
         end += 1
         if after == VS15:
             return end, False
-    elif after >= 0 and prop(after) & EMOJI_MODIFIER:
-        end += 1
     if base == BLACK_FLAG and end == start + 1:
         tags = _tag_end(cps, end)
         if tags > 0:

@@ -4,24 +4,49 @@ build-backend = "hatchling.build"
 
 [project]
 name = "zerowidth"
-version = "0.1.0"
-description = "Detect and strip zero-width and invisible characters from text"
+version = "0.2.0"
+description = "Detect, reveal and strip zero-width, bidi and other invisible characters, keeping emoji and words intact"
 readme = "README.md"
 requires-python = ">=3.10"
 license = "MIT"
-license-files = ["LICENSE"]
+license-files = ["LICENSE", "LICENSE-UNICODE"]
 authors = [{ name = "Javier Lianes", email = "javier@lianes8studio.com" }]
-keywords = []
+keywords = [
+    "unicode",
+    "zero-width",
+    "invisible-characters",
+    "default-ignorable",
+    "bidi",
+    "trojan-source",
+    "sanitize",
+    "homoglyph",
+    "emoji",
+    "steganography",
+]
 classifiers = [
     "Development Status :: 4 - Beta",
     "Intended Audience :: Developers",
+    "Environment :: Console",
+    "Operating System :: OS Independent",
     "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+    "Topic :: Security",
+    "Topic :: Text Processing",
+    "Topic :: Text Processing :: Filters",
     "Typing :: Typed",
 ]
 dependencies = []
 
 [project.optional-dependencies]
 dev = ["ruff", "mypy", "pytest", "build", "twine"]
+
+[project.scripts]
+zerowidth = "zerowidth._cli:main"
 
 [project.urls]
 Homepage = "https://lianes8studio.com"
@@ -30,6 +55,21 @@ Issues = "https://github.com/JaviLianes8/zerowidth/issues"
 Changelog = "https://github.com/JaviLianes8/zerowidth/blob/main/CHANGELOG.md"
 LinkedIn = "https://www.linkedin.com/in/jlianes/"
 Funding = "https://buymeacoffee.com/jlianesglrs"
+
+[tool.hatch.build.targets.sdist]
+# The Unicode data files are fetched locally and never shipped; only their manifest is.
+include = [
+    "src",
+    "tests",
+    "scripts/gen_ucd_tables.py",
+    "scripts/fetch_upstream.py",
+    "data/ucd/MANIFEST.json",
+    "CHANGELOG.md",
+    "CONTRIBUTING.md",
+    "README.md",
+    "LICENSE",
+    "LICENSE-UNICODE",
+]
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/zerowidth"]
@@ -49,3 +89,4 @@ strict = true
 testpaths = ["tests"]
 pythonpath = ["src"]
 addopts = "-q"
+markers = ["e2e: builds the wheel and installs it into a fresh virtual environment"]

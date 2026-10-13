@@ -2,16 +2,16 @@
 
 Progress:
 - [x] Brainstorm ranked improvements (this file)
-- [ ] Pin the ground truth: UCD 18.0.0 files in a local folder with a tracked manifest
-- [ ] Generated property tables and a generator check
-- [ ] Coverage fixed against the UCD: Default_Ignorable_Code_Point, Cf, visible marks excluded
-- [ ] Typed findings with kinds, filtering by kind, reveal mode
-- [ ] Keep emoji sequences intact on request (UTS #51 grammar)
-- [ ] Keep joiners in the contexts UTS #39 allows (A1, A2, B)
-- [ ] Unpaired bidi controls (Trojan Source)
-- [ ] Command line tool
-- [ ] Contracts: UCD sweep, RGI emoji corpus, cited vectors, README examples
-- [ ] Docs and packaging: README, CHANGELOG, metadata, installed-wheel e2e test
+- [x] Pin the ground truth: UCD 18.0.0 files in a local folder with a tracked manifest
+- [x] Generated property tables and a generator check
+- [x] Coverage fixed against the UCD: Default_Ignorable_Code_Point, Cf, visible marks excluded
+- [x] Typed findings with kinds, filtering by kind, reveal mode
+- [x] Keep emoji sequences intact on request (UTS #51 grammar)
+- [x] Keep joiners in the contexts UTS #39 allows (A1, A2, B)
+- [x] Unpaired bidi controls (Trojan Source)
+- [x] Command line tool
+- [x] Contracts: UCD sweep, RGI emoji corpus, cited vectors, README examples
+- [x] Docs and packaging: README, CHANGELOG, metadata, installed-wheel e2e test
 - [ ] Gates: ruff format, ruff check, mypy --strict, pytest
 - [ ] Mutation run: removing guarded logic makes the suite fail
 - [ ] Independent review findings fixed with regression tests

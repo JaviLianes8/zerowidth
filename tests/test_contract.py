@@ -4,7 +4,20 @@ import zerowidth
 
 # The public API. Add every exported name here as the library grows; this list is the
 # contract and the test below fails if the module and this list disagree.
-PUBLIC_API: list[str] = ["find_invisible", "has_invisible", "strip_invisible"]
+PUBLIC_API: list[str] = [
+    "KINDS",
+    "UNICODE_VERSION",
+    "Finding",
+    "Kind",
+    "Marker",
+    "Style",
+    "find_invisible",
+    "has_invisible",
+    "reveal",
+    "scan",
+    "strip_invisible",
+    "unpaired_bidi",
+]
 
 
 def test_all_lists_exactly_the_public_api() -> None:
